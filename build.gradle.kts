@@ -5,9 +5,6 @@ plugins {
     `maven-publish`
 }
 
-group = "me.owdding"
-version = "1.0.0"
-
 gradlePlugin {
     plugins {
         create("meowdding-gradle") {
