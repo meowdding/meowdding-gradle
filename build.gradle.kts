@@ -23,15 +23,12 @@ repositories {
 }
 
 dependencies {
-    implementation("net.msrandom:minecraft-codev-fabric:0.6.4-1") {
-        version { strictly("0.6.4-1") }
-    }
-
     compileOnly(libs.terrarium.cloche)
 
+    implementation("net.msrandom:minecraft-codev-fabric:0.6.6")
     implementation("net.msrandom:minecraft-codev-core:0.6.2")
     implementation("net.msrandom:minecraft-codev-runs:0.6.4")
-    implementation("net.msrandom:minecraft-codev-includes:0.6.0")
+    implementation("net.msrandom:minecraft-codev-includes:0.6.2")
     implementation("com.google.devtools.ksp:symbol-processing-gradle-plugin:2.2.0-2.0.2")
     implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.8")
 }
