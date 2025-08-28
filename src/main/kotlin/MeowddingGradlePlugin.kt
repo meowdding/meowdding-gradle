@@ -32,6 +32,10 @@ class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
             if (meowdding.disableBuildOverwrites.get()) {
                 releaseTask.configure { it.enabled = false }
                 cleanReleaseTask.configure { it.enabled = false }
+            } else {
+                target.tasks.named("build").configure {
+                    it.dependsOn(releaseTask)
+                }
             }
 
             if (meowdding.disableWorkflowSetupTask.get()) {
