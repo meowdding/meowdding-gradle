@@ -6,12 +6,24 @@ import earth.terrarium.cloche.ClocheExtension
 import earth.terrarium.cloche.api.LazyConfigurable
 import earth.terrarium.cloche.api.run.RunConfigurations
 import earth.terrarium.cloche.api.target.MinecraftTarget
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.json.put
+import net.msrandom.minecraftcodev.core.MinecraftCodevPlugin.Companion.json
 import net.msrandom.minecraftcodev.core.utils.getAsPath
 import net.msrandom.minecraftcodev.core.utils.lowerCamelCaseGradleName
+import net.msrandom.minecraftcodev.core.utils.toPath
+import net.msrandom.minecraftcodev.core.utils.zipFileSystem
+import net.msrandom.minecraftcodev.includes.IncludesJar
 import net.msrandom.minecraftcodev.runs.MinecraftRunConfiguration
 import org.gradle.api.Action
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.language.jvm.tasks.ProcessResources
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 internal object RunConfigurator {
     fun handle(
@@ -20,6 +32,33 @@ internal object RunConfigurator {
         cloche: ClocheExtension,
         meowdding: MeowddingExtension,
     ) {
+        val project = configTask.get().project
+
+        if (meowdding.hasAccessWideners.get()) {
+            project.tasks.getByName<IncludesJar>(lowerCamelCaseGradleName(target.sourceSet.takeUnless(SourceSet::isMain)?.name, "includeJar")).apply {
+                doLast {
+                    zipFileSystem(archiveFile.get().toPath()).use { fileSystem ->
+
+                        val modJson = fileSystem.getPath("fabric.mod.json")
+
+                        val inputJson = modJson.inputStream().use {
+                            json.decodeFromStream<JsonObject>(it)
+                        }
+
+                        val updatedMetadata = buildJsonObject {
+                            inputJson.forEach { (key, value) -> put(key, value) }
+
+                            put("accesswidener", cloche.metadata.modId.map { "$it.accessWidener" }.get())
+                        }
+
+                        modJson.outputStream().use {
+                            json.encodeToStream(updatedMetadata, it)
+                        }
+                    }
+                }
+            }
+        }
+
         val collector = RunCollector()
         target.dependencies {
             it.localRuntime.add("net.minecrell:terminalconsoleappender:1.3.0")
@@ -28,7 +67,6 @@ internal object RunConfigurator {
         }
         target.runs(collector)
         collector.forEach { (type, run) ->
-            val project = configTask.get().project
             if (type.environment == Environment.CLIENT) {
                 run.jvmArguments("-Ddevauth.enabled=${!(type.isDataGen || type.isTest)}")
 
@@ -68,7 +106,7 @@ internal object RunConfigurator {
     }
 }
 
-internal class RunCollector : Action<RunConfigurations>, MutableMap<RunType, MinecraftRunConfiguration> by mutableMapOf() {
+class RunCollector : Action<RunConfigurations>, MutableMap<RunType, MinecraftRunConfiguration> by mutableMapOf() {
 
     private fun add(type: RunType, run: LazyConfigurable<MinecraftRunConfiguration>) {
         if (run.value.isPresent) {

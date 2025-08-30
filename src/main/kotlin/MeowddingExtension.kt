@@ -28,6 +28,7 @@ open class MeowddingExtension @Inject constructor(val project: Project, objectFa
 
     val translationRelocation: Property<Boolean> = objectFactor.property<Boolean>().convention(true)
     val modifyShaderImports: Property<Boolean> = objectFactor.property<Boolean>().convention(true)
+    val hasAccessWideners: Property<Boolean> = objectFactor.property<Boolean>().convention(false)
 
     fun setupClocheClasspathFix() {
         setupClocheClasspathFix.set(true)
