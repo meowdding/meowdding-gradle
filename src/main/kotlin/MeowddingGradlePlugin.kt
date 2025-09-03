@@ -108,7 +108,7 @@ class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
             }
 
             val cloche = target.extensions.findByType<ClocheExtension>() ?: return@afterEvaluate
-            cloche.targets.forEach { mcTarget ->
+            (cloche.targets + meowdding.targets).forEach { mcTarget ->
                 val name = mcTarget.sourceSet.name
                 target.tasks.findByPath(":${name}IncludeJar")?.let { task ->
                     releaseTask.configure {

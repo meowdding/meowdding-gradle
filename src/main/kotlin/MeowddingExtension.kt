@@ -1,5 +1,6 @@
 package me.owdding.gradle
 
+import earth.terrarium.cloche.api.target.MinecraftTarget
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -29,6 +30,7 @@ open class MeowddingExtension @Inject constructor(val project: Project, objectFa
     val translationRelocation: Property<Boolean> = objectFactor.property<Boolean>().convention(true)
     val modifyShaderImports: Property<Boolean> = objectFactor.property<Boolean>().convention(true)
     val hasAccessWideners: Property<Boolean> = objectFactor.property<Boolean>().convention(false)
+    internal val targets = mutableListOf<MinecraftTarget>()
 
     fun setupClocheClasspathFix() {
         setupClocheClasspathFix.set(true)
@@ -37,4 +39,8 @@ open class MeowddingExtension @Inject constructor(val project: Project, objectFa
     internal fun codecDependency() = "me.owdding.ktcodecs:KtCodecs:${codecVersion.get()}"
     internal fun moduleDependency() = "me.owdding.ktmodules:KtModules:${moduleVersion.get()}"
 
+
+    fun handleTarget(target: MinecraftTarget) {
+        targets.add(target)
+    }
 }
