@@ -21,6 +21,7 @@ import net.msrandom.minecraftcodev.runs.MinecraftRunConfiguration
 import org.gradle.api.Action
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.jvm.tasks.Jar
 import org.gradle.language.jvm.tasks.ProcessResources
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
@@ -35,7 +36,7 @@ internal object RunConfigurator {
         val project = configTask.get().project
 
         if (meowdding.hasAccessWideners.get()) {
-            project.tasks.getByName<IncludesJar>(lowerCamelCaseGradleName(target.sourceSet.takeUnless(SourceSet::isMain)?.name, "jar")).apply {
+            project.tasks.getByName<Jar>(lowerCamelCaseGradleName(target.sourceSet.takeUnless(SourceSet::isMain)?.name, "jar")).apply {
                 doLast {
                     zipFileSystem(archiveFile.get().toPath()).use { fileSystem ->
 
