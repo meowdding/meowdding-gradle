@@ -35,7 +35,7 @@ internal object RunConfigurator {
         val project = configTask.get().project
 
         if (meowdding.hasAccessWideners.get()) {
-            project.tasks.getByName<IncludesJar>(lowerCamelCaseGradleName(target.sourceSet.takeUnless(SourceSet::isMain)?.name, "includeJar")).apply {
+            project.tasks.getByName<IncludesJar>(lowerCamelCaseGradleName(target.sourceSet.takeUnless(SourceSet::isMain)?.name, "jar")).apply {
                 doLast {
                     zipFileSystem(archiveFile.get().toPath()).use { fileSystem ->
 

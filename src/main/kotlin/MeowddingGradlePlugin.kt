@@ -11,6 +11,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.language.jvm.tasks.ProcessResources
 import java.io.File
 import kotlin.io.path.*
@@ -58,6 +59,7 @@ class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
                 }
             }
 
+            val cloche = target.extensions.findByType<ClocheExtension>() ?: return@afterEvaluate
             target.tasks.withType<ProcessResources> {
                 if (meowdding.modifyShaderImports.get()) {
                     filesMatching(listOf("**/*.fsh", "**/*.vsh")) {
@@ -68,7 +70,7 @@ class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
                 if (meowdding.translationRelocation.get()) {
                     with(
                         target.copySpec {
-                            it.from("src/lang").include("*.json").into("assets/skyocean/lang")
+                            it.from("src/lang").include("*.json").into(cloche.metadata.modId.map { "assets/${it.lowercase()}/lang" })
                         },
                     )
                 }
@@ -107,7 +109,6 @@ class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
                 target.dependencies.add("ksp", meowdding.codecDependency())
             }
 
-            val cloche = target.extensions.findByType<ClocheExtension>() ?: return@afterEvaluate
             (cloche.targets + meowdding.targets).forEach { mcTarget ->
                 val name = mcTarget.sourceSet.name
                 target.tasks.findByPath(":${name}IncludeJar")?.let { task ->
