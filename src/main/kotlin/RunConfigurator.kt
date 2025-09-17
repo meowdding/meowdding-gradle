@@ -49,7 +49,7 @@ internal object RunConfigurator {
                         val updatedMetadata = buildJsonObject {
                             inputJson.forEach { (key, value) -> put(key, value) }
 
-                            put("accesswidener", cloche.metadata.modId.map { "$it.accessWidener" }.get())
+                            put("accessWidener", cloche.metadata.modId.map { "$it.accessWidener" }.get())
                         }
 
                         modJson.outputStream().use {
