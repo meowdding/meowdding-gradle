@@ -10,7 +10,7 @@ fun FabricMetadata.dependency(modId: String, version: Provider<String>? = null, 
         if (version != null) it.version { versionRange ->
             versionRange.start.set(version)
             if (untilNextMajor) {
-                versionRange.end.set(version.map { version -> "${version.substringAfter(".").toInt() + 1}.0.0" })
+                versionRange.end.set(version.map { version -> "${version.substringBefore(".").toInt() + 1}.0.0" })
                 versionRange.endExclusive.set(true)
             }
         }

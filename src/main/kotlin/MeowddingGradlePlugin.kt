@@ -2,6 +2,7 @@ package me.owdding.gradle
 
 import com.google.devtools.ksp.gradle.KspExtension
 import earth.terrarium.cloche.ClocheExtension
+import net.msrandom.minecraftcodev.core.utils.lowerCamelCaseGradleName
 import net.msrandom.minecraftcodev.core.utils.toPath
 import net.msrandom.minecraftcodev.fabric.task.JarInJar
 import net.msrandom.minecraftcodev.runs.task.WriteClasspathFile
@@ -11,10 +12,13 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.language.jvm.tasks.ProcessResources
 import java.io.File
-import kotlin.io.path.*
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.exists
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
     override fun apply(target: Target) {
@@ -111,19 +115,20 @@ class MeowddingGradlePlugin<Target : PluginAware> : Plugin<Target> {
 
             (cloche.targets + meowdding.targets).forEach { mcTarget ->
                 val name = mcTarget.sourceSet.name
-                target.tasks.findByPath(":${name}IncludeJar")?.let { task ->
+                target.tasks.findByPath(":${lowerCamelCaseGradleName(name, "includeJar")}")?.let { task ->
                     releaseTask.configure {
                         it.dependsOn(task)
                         it.mustRunAfter(task)
                     }
                 }
 
-                listOf("remap${name}CommonMinecraftNamed", "remap${name}ClientMinecraftNamed").mapNotNull { target.tasks.findByPath(":$it") }.forEach { task ->
-                    setupWorkflowTasks.configure {
-                        it.dependsOn(task)
-                        it.mustRunAfter(task)
+                listOf(lowerCamelCaseGradleName("remap", name, "commonMinecraftNamed"), lowerCamelCaseGradleName("remap", name, "clientMinecraftNamed"))
+                    .mapNotNull { target.tasks.findByPath(":$it") }.forEach { task ->
+                        setupWorkflowTasks.configure {
+                            it.dependsOn(task)
+                            it.mustRunAfter(task)
+                        }
                     }
-                }
 
                 RunConfigurator.handle(mcTarget, configTask, cloche, meowdding)
             }
