@@ -4,6 +4,7 @@ package me.owdding.gradle
 
 import earth.terrarium.cloche.ClocheExtension
 import earth.terrarium.cloche.api.LazyConfigurable
+import earth.terrarium.cloche.api.metadata.ModMetadata
 import earth.terrarium.cloche.api.run.RunConfigurations
 import earth.terrarium.cloche.api.target.MinecraftTarget
 import kotlinx.serialization.json.JsonObject
@@ -16,7 +17,6 @@ import net.msrandom.minecraftcodev.core.utils.getAsPath
 import net.msrandom.minecraftcodev.core.utils.lowerCamelCaseGradleName
 import net.msrandom.minecraftcodev.core.utils.toPath
 import net.msrandom.minecraftcodev.core.utils.zipFileSystem
-import net.msrandom.minecraftcodev.includes.IncludesJar
 import net.msrandom.minecraftcodev.runs.MinecraftRunConfiguration
 import org.gradle.api.Action
 import org.gradle.api.tasks.SourceSet
@@ -25,6 +25,45 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.language.jvm.tasks.ProcessResources
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
+
+
+private fun buildVersionRange(range: ModMetadata.VersionRange): String? {
+    if (!range.start.isPresent && !range.end.isPresent) {
+        return null
+    }
+
+    return buildString {
+        if (range.start == range.end) {
+            require(range.startInclusive.getOrElse(true)) {
+                "No version in the range"
+            }
+            append(range.start.get())
+            return@buildString
+        }
+
+        if (range.start.isPresent) {
+            if (range.startInclusive.getOrElse(true)) {
+                append(">=")
+            } else {
+                append('>')
+            }
+
+            append(range.start.get())
+        }
+
+        if (range.end.isPresent) {
+            if (range.start.isPresent) append(' ')
+
+            if (range.endExclusive.getOrElse(true)) {
+                append('<')
+            } else {
+                append("<=")
+            }
+
+            append(range.end.get())
+        }
+    }
+}
 
 internal object RunConfigurator {
     fun handle(
@@ -37,6 +76,7 @@ internal object RunConfigurator {
 
         if (meowdding.hasAccessWideners.get()) {
             project.tasks.getByName<Jar>(lowerCamelCaseGradleName(target.sourceSet.takeUnless(SourceSet::isMain)?.name, "jar")).apply {
+                inputs.properties(mapOf("breaks" to target.breaks()))
                 doLast {
                     zipFileSystem(archiveFile.get().toPath()).use { fileSystem ->
 
@@ -50,6 +90,11 @@ internal object RunConfigurator {
                             inputJson.forEach { (key, value) -> put(key, value) }
 
                             put("accessWidener", cloche.metadata.modId.map { "$it.accessWidener" }.get())
+                            put("breaks", buildJsonObject {
+                                target.breaks().forEach {
+                                    put(it.modId.get(), it.version.map(::buildVersionRange).getOrElse("*"))
+                                }
+                            })
                         }
 
                         modJson.outputStream().use {

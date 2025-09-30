@@ -20,6 +20,7 @@ inline fun <reified T> ExtensionContainer.findByType(): T? = findByType(T::class
 inline fun <reified T : Task> TaskContainer.register(name: String, noinline config: T.() -> Unit = {}): TaskProvider<T> = register(name, T::class.java, config)
 
 inline fun <reified T> ObjectFactory.property(): Property<T> = property(T::class.java).apply { finalizeValueOnRead() }
+inline fun <reified T> ObjectFactory.new(vararg args: Any): T = this.newInstance(T::class.java, *args)
 inline fun <reified T> ExtensionContainer.create(name: String, vararg args: Any): T = this.create(name, T::class.java, *args)
 inline fun <reified T : Task> TaskContainer.getByName(name: String) = this.getByName(name) as T
 
